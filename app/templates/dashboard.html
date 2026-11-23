@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch System — Панель управления</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 16px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo {
+            font-size: 24px;
+            color: white;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
+        }
+
+        .user-role {
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        /* ===== TABS ===== */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+            background: white;
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #718096;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .tab:hover {
+            background: #f7fafc;
+            color: #1e3c72;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(30, 60, 114, 0.2);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        /* ===== FORMS ===== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #4a5568;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            outline: none;
+            font-family: inherit;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #2d7a4f 0%, #1e5a3a 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #b7791f 0%, #975a16 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: #f7fafc;
+            color: #4a5568;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f2f5;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f7fafc;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-new {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-progress {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-done {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-canceled {
+            background: #fee2e2;
+            color: #991b1b;
+            text-decoration: line-through;
+        }
+
+        /* ===== COMMENTS ===== */
+        .comments-section {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 3px solid #2a5298;
+        }
+
+        .comments-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .comment {
+            padding: 8px 10px;
+            background: white;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #1e3c72;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+
+        .comment-text {
+            color: #4a5568;
+            font-size: 13px;
+        }
+
+        .comment-input-wrapper {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .comment-input-wrapper input {
+            flex: 1;
+            margin: 0;
+            padding: 8px 12px;
+        }
+
+        /* ===== CHAT ===== */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+        }
+
+        .chat-select-wrapper {
+            margin-bottom: 16px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .chat-msg {
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            max-width: 70%;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-msg.client {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-msg.dispatcher, .chat-msg.admin {
+            background: white;
+            color: #2d3748;
+            margin-left: auto;
+            text-align: right;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .chat-msg .meta {
+            font-size: 10px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input-wrapper input {
+            flex: 1;
+            margin: 0;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f2f5;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .close-modal {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f0f2f5;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #718096;
+        }
+
+        .close-modal:hover {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+
+        .modal-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .add-user-form {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+            border: 2px dashed #2a5298;
+        }
+
+        /* ===== TOAST NOTIFICATIONS ===== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: white;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 280px;
+            animation: slideInRight 0.3s ease;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .toast.success { border-left-color: #2d7a4f; }
+        .toast.error { border-left-color: #c53030; }
+        .toast.warning { border-left-color: #b7791f; }
+
+        .toast-icon {
+            font-size: 18px;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: 13px;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        /* ===== BLOCKED WARNING ===== */
+        .blocked-warning {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            color: #c53030;
+            padding: 14px 18px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 13px;
+            border-bottom: 3px solid #c53030;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1;
+                min-width: 120px;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 0 10px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: #a0aec0;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <span class="header-logo">◈</span>
+            <span class="header-title">Dispatch System</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="user-badge">
+                <span>▣</span>
+                <span class="user-role" id="userRoleDisplay">Загрузка...</span>
+            </div>
+            <button class="btn-logout" onclick="logout()">Выйти</button>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Tabs -->
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('requests')">
+                <span>◫</span> Заявки
+            </div>
+            <div class="tab" onclick="switchTab('chat')">
+                <span>◬</span> Чат поддержки
+            </div>
+            <div class="tab" id="adminTab" style="display:none;" onclick="switchTab('users')">
+                <span>◉</span> Пользователи
+            </div>
+        </div>
+
+        <!-- Requests Tab -->
+        <div id="requests" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">✎</div>
+                    <div class="card-title">Новая заявка</div>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="reqTitle" placeholder="Суть проблемы">
+                </div>
+                <div class="form-group">
+                    <textarea id="reqDesc" rows="3" placeholder="Подробное описание..."></textarea>
+                </div>
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="reqComments" checked>
+                    <span>Разрешить комментарии под этой заявкой</span>
+                </label>
+                <button class="btn btn-primary" style="margin-top: 12px; width: 100%;" onclick="createRequest()">
+                    <span>＋</span> Создать заявку
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">◫</div>
+                    <div class="card-title">Список заявок</div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Заявитель</th>
+                                <th>Описание</th>
+                                <th>Статус</th>
+                                <th>Исполнитель</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">◬</div>
+                    <div class="card-title">Чат поддержки</div>
+                </div>
+                <div class="chat-container">
+                    <div class="chat-select-wrapper">
+                        <label>Выберите заявку для общения:</label>
+                        <select id="chatRequestSelect" onchange="loadChat()">
+                            <option value="">  > Выберите заявку < </option>
+                        </select>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">◬</div>
+                            <div class="empty-state-text">Выберите заявку, чтобы начать общение</div>
+                        </div>
+                    </div>
+                    <div class="chat-input-wrapper">
+                        <input type="text" id="chatInput" placeholder="Введите сообщение..." disabled>
+                        <button class="btn btn-primary" onclick="sendChatMessage()" id="chatSendBtn" disabled>
+                            <span>➤</span> Отправить
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab (Admin only) -->
+        <div id="users" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">＋</div>
+                    <div class="card-title">Создать нового пользователя</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                    <input type="text" id="newUsername" placeholder="Логин">
+                    <input type="password" id="newUserPassword" placeholder="Пароль">
+                    <select id="newUserRole">
+                        <option value="client">Клиент</option>
+                        <option value="dispatcher">Диспетчер</option>
+                        <option value="admin">Администратор</option>
+                    </select>
+                    <button class="btn btn-success" onclick="createUserFromAdmin()">
+                        <span>＋</span> Создать
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">◉</div>
+                    <div class="card-title">Управление пользователями</div>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Логин</th>
+                                <th>Роль</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Modal -->
+    <div id="assignModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">◈ Назначение</div>
+                <button class="close-modal" onclick="closeAssignModal()">✕</button>
+            </div>
+            <p style="color:#718096; font-size:13px; margin-bottom: 18px;">
+                Заявка #<span id="assignReqId"></span>: <strong id="assignReqTitle"></strong>
+            </p>
+
+            <div class="form-group">
+                <label>Заявитель</label>
+                <select id="assignCreatedBy">
+                    <option value=""> > Выберите заявителя < </option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Исполнитель (диспетчер)</label>
+                <select id="assignDispatcher">
+                    <option value=""> > Без исполнителя < </option>
+                </select>
+            </div>
+
+            <!-- Add User Form -->
+            <div id="addUserForm" class="add-user-form" style="display:none;">
+                <h4 style="margin-bottom: 12px; color: #2d3748; font-size: 14px;">＋ Новый пользователь</h4>
+                <div class="form-group">
+                    <input type="text" id="newUserLogin" placeholder="Логин">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="newUserPass" placeholder="Пароль">
+                </div>
+                <div class="form-group">
+                    <select id="newUserRoleSelect">
+                        <option value="client">Клиент</option>
+                        <option value="dispatcher">Диспетчер</option>
+                        <option value="admin">Администратор</option>
+                    </select>
+                </div>
+                <button class="btn btn-success" style="width: 100%; margin-bottom: 8px;" onclick="createNewUserFromModal()">
+                    <span>＋</span> Создать и выбрать
+                </button>
+                <button class="btn btn-secondary" style="width: 100%;" onclick="hideAddUserForm()">
+                    <span>○</span> Отмена
+                </button>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 12px;" onclick="showAddUserForm()">
+                <span>＋</span> Добавить нового пользователя
+            </button>
+
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeAssignModal()">Отмена</button>
+                <button class="btn btn-success" onclick="saveAssignment()">
+                    <span>◉</span> Сохранить
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        let isBlocked = false;
+        let blockUntilText = "";
+        let currentAssignReqId = null;
+        let allUsers = [];
+
+        // Toast Notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icons = { success: '✓', error: '✖', warning: '⚠' };
+            toast.innerHTML = `
+                <span class="toast-icon">${icons[type]}</span>
+                <span class="toast-message">${message}</span>
+            `;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Check Block Status
+        async function checkBlockStatus() {
+            try {
+                const res = await fetch('/api/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) {
+                    const userData = await res.json();
+                    isBlocked = userData.is_blocked;
+                    blockUntilText = userData.block_until;
+
+                    document.getElementById('userRoleDisplay').innerText =
+                        role.toUpperCase() + (isBlocked ? ' (ЗАБЛОКИРОВАН)' : '');
+
+                    if (isBlocked) {
+                        const warning = document.createElement('div');
+                        warning.className = 'blocked-warning';
+                        warning.innerHTML = `⚠ ВАШ АККАУНТ ЗАБЛОКИРОВАН ДО ${blockUntilText}. Вы можете только просматривать данные.`;
+                        document.body.insertBefore(warning, document.body.firstChild);
+
+                        document.querySelectorAll('.btn').forEach(el => {
+                            if (!el.innerText.includes('Выйти')) {
+                                el.style.display = 'none';
+                            }
+                        });
+
+                        const chatInput = document.getElementById('chatInput');
+                        if (chatInput) {
+                            chatInput.disabled = true;
+                            document.getElementById('chatSendBtn').disabled = true;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking block status:', error);
+            }
+        }
+
+        if (role === 'admin') {
+            document.getElementById('adminTab').style.display = 'flex';
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+            if (tabName === 'requests') loadRequests();
+            if (tabName === 'users') loadUsers();
+            if (tabName === 'chat') loadChatRequests();
+        }
+
+        // Load Requests
+        async function loadRequests() {
+            try {
+                const res = await fetch('/api/requests', { headers: { 'Authorization': `Bearer ${token}` } });
+                const requests = await res.json();
+                const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
+
+                if (requests.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">◫</div>
+                                    <div class="empty-state-text">Заявок пока нет</div>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                for (const req of requests) {
+                    let actions = '';
+                    const statusClass = `status-${req.status === 'Новая' ? 'new' : req.status === 'В работе' ? 'progress' : req.status === 'Отменена' ? 'canceled' : 'done'}`;
+
+                    if (role === 'client' && req.status === 'Новая' && !req.dispatcher) {
+                        actions = `
+                            <button class="btn btn-warning btn-sm" onclick="editRequest(${req.id})"> Изменить</button>
+                            <button class="btn btn-danger btn-sm" onclick="cancelRequest(${req.id})">✖ Отменить</button>
+                        `;
+                    } else if (role === 'dispatcher' || role === 'admin') {
+                        if (req.status === 'Новая') {
+                            actions += `<button class="btn btn-warning btn-sm" onclick="updateReq(${req.id}, 'В работе', '${role === 'admin' ? 'admin' : 'disp'}')">▶ В работу</button>`;
+                        }
+                        if (req.status === 'В работе') {
+                            actions += `<button class="btn btn-success btn-sm" onclick="updateReq(${req.id}, 'Выполнена', '${role === 'admin' ? 'admin' : 'disp'}')">✓ Завершить</button>`;
+                        }
+
+                        if (req.status !== 'Выполнена' && req.status !== 'Отменена') {
+                            actions += `<button class="btn btn-primary btn-sm" onclick="openAssignModal(${req.id}, '${req.title.replace(/'/g, "\\'")}', '${req.created_by}', '${req.dispatcher || ''}')"> Назначить</button>`;
+                        } else {
+                            actions += `<span style="color:#a0aec0; font-size:11px;">◈ Зафиксировано</span>`;
+                        }
+
+                        actions += `<button class="btn btn-danger btn-sm" onclick="deleteReq(${req.id})">✖ Удалить</button>`;
+                    } else {
+                        actions = '<span style="color:#a0aec0">Ожидание</span>';
+                    }
+
+                    let commentsHtml = '';
+                    if (req.comments_enabled) {
+                        const comRes = await fetch(`/api/requests/${req.id}/comments`, { headers: { 'Authorization': `Bearer ${token}` } });
+                        const comments = await comRes.json();
+                        commentsHtml = `
+                            <div class="comments-section">
+                                <div class="comments-title"> Комментарии (${comments.length})</div>
+                                ${comments.map(c => `
+                                    <div class="comment">
+                                        <div class="comment-author">${c.author}</div>
+                                        <div class="comment-text">${c.text}</div>
+                                    </div>
+                                `).join('')}
+                                <div class="comment-input-wrapper">
+                                    <input type="text" id="comInput_${req.id}" placeholder="Написать комментарий...">
+                                    <button class="btn btn-primary btn-sm" onclick="addComment(${req.id})">▤</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>#${req.id}</strong></td>
+                            <td>${req.created_by}</td>
+                            <td>
+                                <strong>${req.title}</strong><br>
+                                <small style="color:#718096">${req.description}</small>
+                            </td>
+                            <td><span class="status-badge ${statusClass}">${req.status}</span></td>
+                            <td>${req.dispatcher || '<span style="color:#a0aec0">—</span>'}</td>
+                            <td>${actions}</td>
+                        </tr>
+                        ${commentsHtml ? `<tr><td colspan="6" style="padding:0; border:none;">${commentsHtml}</td></tr>` : ''}
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                showToast('Ошибка загрузки заявок', 'error');
+            }
+        }
+
+        async function createRequest() {
+            const title = document.getElementById('reqTitle').value;
+            if (!title) {
+                showToast('Введите название заявки', 'warning');
+                return;
+            }
+            const res = await fetch('/api/requests', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    description: document.getElementById('reqDesc').value,
+                    comments_enabled: document.getElementById('reqComments').checked
+                })
+            });
+            if (res.ok) {
+                showToast('Заявка успешно создана', 'success');
+                document.getElementById('reqTitle').value = '';
+                document.getElementById('reqDesc').value = '';
+                loadRequests();
+            } else {
+                showToast('Ошибка при создании заявки', 'error');
+            }
+        }
+
+        async function updateReq(id, status, dispatcher) {
+            await fetch(`/api/requests/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, dispatcher })
+            });
+            showToast(`Статус обновлён: ${status}`, 'success');
+            loadRequests();
+        }
+
+        async function deleteReq(id) {
+            if (!confirm('Удалить заявку?')) return;
+            await fetch(`/api/requests/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showToast('Заявка удалена', 'success');
+            loadRequests();
+        }
+
+        async function cancelRequest(id) {
+            await fetch(`/api/requests/${id}`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'Отменена' })
+            });
+            showToast('Заявка отменена', 'warning');
+            loadRequests();
+        }
+
+        async function addComment(reqId) {
+            const text = document.getElementById(`comInput_${reqId}`).value;
+            if (!text) {
+                showToast('Введите текст комментария', 'warning');
+                return;
+            }
+            await fetch(`/api/requests/${reqId}/comments`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            showToast('Комментарий добавлен', 'success');
+            loadRequests();
+        }
+
+        // Assign Modal
+        async function openAssignModal(reqId, reqTitle, currentCreatedBy, currentDispatcher) {
+            currentAssignReqId = reqId;
+            document.getElementById('assignReqId').innerText = reqId;
+            document.getElementById('assignReqTitle').innerText = reqTitle;
+            hideAddUserForm();
+
+            try {
+                const res = await fetch('/api/users/list', { headers: { 'Authorization': `Bearer ${token}` } });
+                allUsers = await res.json();
+
+                const createdBySelect = document.getElementById('assignCreatedBy');
+                createdBySelect.innerHTML = '<option value="">-- Выберите заявителя --</option>';
+                allUsers.forEach(u => {
+                    const selected = u.username === currentCreatedBy ? 'selected' : '';
+                    createdBySelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username} (${u.role})</option>`;
+                });
+
+                const dispatcherSelect = document.getElementById('assignDispatcher');
+                dispatcherSelect.innerHTML = '<option value="">-- Без исполнителя --</option>';
+                allUsers.filter(u => u.role === 'dispatcher' || u.role === 'admin').forEach(u => {
+                    const selected = u.username === currentDispatcher ? 'selected' : '';
+                    dispatcherSelect.innerHTML += `<option value="${u.username}" ${selected}>${u.username} (${u.role})</option>`;
+                });
+
+                document.getElementById('assignModal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showToast('Ошибка загрузки списка пользователей', 'error');
+            }
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assignModal').classList.remove('active');
+            currentAssignReqId = null;
+        }
+
+        function showAddUserForm() {
+            document.getElementById('addUserForm').style.display = 'block';
+        }
+
+        function hideAddUserForm() {
+            document.getElementById('addUserForm').style.display = 'none';
+            document.getElementById('newUserLogin').value = '';
+            document.getElementById('newUserPass').value = '';
+        }
+
+        async function createNewUserFromModal() {
+            const username = document.getElementById('newUserLogin').value.trim();
+            const password = document.getElementById('newUserPass').value;
+            const userRole = document.getElementById('newUserRoleSelect').value;
+
+            if (!username || !password) {
+                showToast('Заполните логин и пароль', 'warning');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role: userRole })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`Пользователь ${data.username} создан`, 'success');
+                    hideAddUserForm();
+                    await openAssignModal(currentAssignReqId, document.getElementById('assignReqTitle').innerText, document.getElementById('assignCreatedBy').value, document.getElementById('assignDispatcher').value);
+                    document.getElementById('assignCreatedBy').value = data.username;
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showToast('Ошибка при создании пользователя', 'error');
+            }
+        }
+
+        async function saveAssignment() {
+            const createdBy = document.getElementById('assignCreatedBy').value;
+            const dispatcher = document.getElementById('assignDispatcher').value;
+
+            if (!createdBy) {
+                showToast('Выберите заявителя', 'warning');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/requests/${currentAssignReqId}/assign`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ created_by: createdBy, dispatcher: dispatcher || null })
+                });
+
+                if (res.ok) {
+                    showToast('Заявитель и исполнитель обновлены', 'success');
+                    closeAssignModal();
+                    loadRequests();
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail, 'error');
+                }
+            } catch (error) {
+                console.error('Error saving assignment:', error);
+                showToast('Ошибка при сохранении', 'error');
+            }
+        }
+
+        // Chat
+        async function loadChatRequests() {
+            const res = await fetch('/api/requests', { headers: { 'Authorization': `Bearer ${token}` } });
+            const requests = await res.json();
+            const select = document.getElementById('chatRequestSelect');
+            select.innerHTML = '<option value="">-- Выберите заявку --</option>';
+            requests.forEach(req => {
+                select.innerHTML += `<option value="${req.id}">#${req.id}: ${req.title} (${req.status})</option>`;
+            });
+        }
+
+        async function loadChat() {
+            const reqId = document.getElementById('chatRequestSelect').value;
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+
+            if (!reqId) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"></div>
+                        <div class="empty-state-text">Выберите заявку, чтобы начать общение</div>
+                    </div>
+                `;
+                chatInput.disabled = true;
+                chatSendBtn.disabled = true;
+                return;
+            }
+
+            chatInput.disabled = false;
+            chatSendBtn.disabled = false;
+
+            const res = await fetch(`/api/chat/${reqId}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const messages = await res.json();
+            const container = document.getElementById('chatMessages');
+
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"></div>
+                        <div class="empty-state-text">Начните диалог по этой заявке</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = '';
+                messages.forEach(msg => {
+                    container.innerHTML += `
+                        <div class="chat-msg ${msg.sender}">
+                            <div class="meta">${msg.sender.toUpperCase()}</div>
+                            ${msg.text}
+                        </div>
+                    `;
+                });
+            }
+            container.scrollTop = container.scrollHeight;
+            window.currentChatReqId = reqId;
+        }
+
+        async function sendChatMessage() {
+            const text = document.getElementById('chatInput').value;
+            if (!text || !window.currentChatReqId) return;
+            await fetch(`/api/chat/${window.currentChatReqId}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            document.getElementById('chatInput').value = '';
+            loadChat();
+        }
+
+        // Admin Users
+        async function loadUsers() {
+            const res = await fetch('/api/users', { headers: { 'Authorization': `Bearer ${token}` } });
+            const users = await res.json();
+            const tbody = document.getElementById('usersBody');
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                const statusHtml = u.is_blocked
+                    ? `<span class="status-badge status-canceled">Заблок. до ${u.block_until}</span>`
+                    : '<span class="status-badge status-done">Активен</span>';
+
+                let adminActions = '';
+                if (u.is_blocked) {
+                    adminActions += `<button class="btn btn-success btn-sm" onclick="unblockUser(${u.id})">✓ Снять блок</button> `;
+                } else {
+                    adminActions += `<button class="btn btn-warning btn-sm" onclick="blockUser(${u.id})"> Блок</button> `;
+                }
+                adminActions += `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✖ Удалить</button>`;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>#${u.id}</strong></td>
+                        <td>${u.username}</td>
+                        <td><span class="status-badge status-progress">${u.role}</span></td>
+                        <td>${statusHtml}</td>
+                        <td>${adminActions}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function createUserFromAdmin() {
+            const username = document.getElementById('newUsername').value.trim();
+            const password = document.getElementById('newUserPassword').value;
+            const userRole = document.getElementById('newUserRole').value;
+
+            if (!username || !password) {
+                showToast('Заполните логин и пароль', 'warning');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role: userRole })
+                });
+
+                if (res.ok) {
+                    showToast('Пользователь создан', 'success');
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newUserPassword').value = '';
+                    loadUsers();
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail, 'error');
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                showToast('Ошибка при создании пользователя', 'error');
+            }
+        }
+
+        async function blockUser(id) {
+            const days = prompt("Введите количество дней для блокировки:", "7");
+            if (!days || isNaN(days)) return;
+            await fetch(`/api/users/${id}/block`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ days: parseInt(days) })
+            });
+            showToast('Пользователь заблокирован', 'warning');
+            loadUsers();
+        }
+
+        async function unblockUser(id) {
+            if (!confirm('Снять блокировку с пользователя?')) return;
+            await fetch(`/api/users/${id}/unblock`, { method: 'PUT', headers: { 'Authorization': `Bearer ${token}` } });
+            showToast('Блокировка снята', 'success');
+            loadUsers();
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Удалить пользователя?')) return;
+            await fetch(`/api/users/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+            showToast('Пользователь удалён', 'success');
+            loadUsers();
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        // Init
+        checkBlockStatus();
+        loadRequests();
+    </script>
+</body>
+</html>

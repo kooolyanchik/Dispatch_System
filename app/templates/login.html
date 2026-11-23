@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход в систему | Dispatch System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-header { text-align: center; margin-bottom: 25px; }
+        .login-logo {
+            width: 70px; height: 70px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px; font-size: 32px; color: white;
+            box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3);
+        }
+        .login-header h1 { color: #2d3748; font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+        .login-header p { color: #718096; font-size: 14px; }
+        .mode-switcher {
+            display: flex; background: #f0f2f5; border-radius: 8px; padding: 4px; margin-bottom: 25px;
+        }
+        .mode-btn {
+            flex: 1; padding: 10px; border: none; background: transparent;
+            color: #718096; font-weight: 600; font-size: 14px; cursor: pointer;
+            border-radius: 6px; transition: all 0.3s ease;
+        }
+        .mode-btn.active { background: white; color: #1e3c72; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08); }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; color: #4a5568; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+        .input-wrapper { position: relative; }
+        .input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: #718096; }
+        .form-group input {
+            width: 100%; padding: 11px 14px 11px 40px; border: 2px solid #e2e8f0;
+            border-radius: 8px; font-size: 14px; transition: all 0.3s ease; outline: none;
+        }
+        .form-group input:focus { border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1); }
+        .btn-submit {
+            width: 100%; padding: 12px; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s ease; margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(30, 60, 114, 0.3); }
+        .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .consent-block { margin-top: 18px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+        .consent-item {
+            display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px;
+            font-size: 13px; color: #4a5568; line-height: 1.4;
+        }
+        .consent-item input[type="checkbox"] {
+            width: 18px; height: 18px; margin-top: 2px; cursor: pointer; flex-shrink: 0; accent-color: #1e3c72;
+        }
+        .consent-item a { color: #2a5298; text-decoration: none; font-weight: 600; border-bottom: 1px dotted #2a5298; }
+        .consent-item a:hover { color: #1e3c72; border-bottom-style: solid; }
+        .error-message {
+            background: #fed7d7; color: #c53030; padding: 10px 14px; border-radius: 8px;
+            font-size: 13px; margin-bottom: 15px; display: none; animation: shake 0.4s; border-left: 3px solid #c53030;
+        }
+        .success-message {
+            background: #d1fae5; color: #065f46; padding: 10px 14px; border-radius: 8px;
+            font-size: 13px; margin-bottom: 15px; display: none; border-left: 3px solid #065f46;
+        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+        .test-accounts { margin-top: 25px; padding-top: 18px; border-top: 1px solid #e2e8f0; }
+        .test-accounts h3 { color: #4a5568; font-size: 11px; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .account-item {
+            display: flex; justify-content: space-between; align-items: center; padding: 8px 10px;
+            background: #f7fafc; border-radius: 6px; margin-bottom: 6px; font-size: 12px;
+        }
+        .account-item .role { font-weight: 600; color: #1e3c72; }
+        .account-item .creds { color: #718096; font-family: 'Courier New', monospace; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <div class="login-logo">◈</div>
+            <h1>Dispatch System</h1>
+            <p>Система диспетчерского обслуживания</p>
+        </div>
+
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="modeLogin" onclick="switchMode('login')">Вход</button>
+            <button class="mode-btn" id="modeRegister" onclick="switchMode('register')">Регистрация</button>
+        </div>
+
+        <div class="error-message" id="errorMsg"></div>
+        <div class="success-message" id="successMsg"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="loginUsername">Логин</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">▣</span>
+                    <input type="text" id="loginUsername" placeholder="Введите логин" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Пароль</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">◬</span>
+                    <input type="password" id="loginPassword" placeholder="Введите пароль" required>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit">Войти в систему</button>
+        </form>
+
+        <form id="registerForm" class="hidden">
+            <div class="form-group">
+                <label for="regUsername">Логин (минимум 3 символа)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">▣</span>
+                    <input type="text" id="regUsername" placeholder="Придумайте логин" minlength="3" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Пароль (минимум 6 символов)</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">◬</span>
+                    <input type="password" id="regPassword" placeholder="Придумайте пароль" minlength="6" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regPasswordConfirm">Подтверждение пароля</label>
+                <div class="input-wrapper">
+                    <span class="input-icon">◬</span>
+                    <input type="password" id="regPasswordConfirm" placeholder="Повторите пароль" minlength="6" required>
+                </div>
+            </div>
+            <div class="consent-block">
+                <div class="consent-item">
+                    <input type="checkbox" id="consentPrivacy">
+                    <label for="consentPrivacy">
+                        Я даю согласие на обработку моих персональных данных в соответствии с
+                        <a href="/privacy" target="_blank">Политикой конфиденциальности</a>.
+                    </label>
+                </div>
+                <div class="consent-item">
+                    <input type="checkbox" id="consentTerms">
+                    <label for="consentTerms">
+                        Я ознакомился(ась) и согласен(на) с
+                        <a href="/terms" target="_blank">Пользовательским соглашением</a>.
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="btn-submit" id="registerBtn">Зарегистрироваться</button>
+        </form>
+
+        <div class="test-accounts" id="testAccountsBlock">
+            <h3>Тестовые аккаунты</h3>
+            <div class="account-item">
+                <span class="role">Администратор</span>
+                <span class="creds">admin / admin123</span>
+            </div>
+            <div class="account-item">
+                <span class="role">Диспетчер</span>
+                <span class="creds">disp / disp123</span>
+            </div>
+            <div class="account-item">
+                <span class="role">Клиент</span>
+                <span class="creds">client / client123</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'login';
+        function switchMode(mode) {
+            currentMode = mode;
+            hideMessages();
+            if (mode === 'login') {
+                document.getElementById('loginForm').classList.remove('hidden');
+                document.getElementById('registerForm').classList.add('hidden');
+                document.getElementById('modeLogin').classList.add('active');
+                document.getElementById('modeRegister').classList.remove('active');
+                document.getElementById('testAccountsBlock').classList.remove('hidden');
+            } else {
+                document.getElementById('loginForm').classList.add('hidden');
+                document.getElementById('registerForm').classList.remove('hidden');
+                document.getElementById('modeLogin').classList.remove('active');
+                document.getElementById('modeRegister').classList.add('active');
+                document.getElementById('testAccountsBlock').classList.add('hidden');
+            }
+        }
+        function showError(text) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = '⚠ ' + text;
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+        function showSuccess(text) {
+            const el = document.getElementById('successMsg');
+            el.textContent = '✓ ' + text;
+            el.style.display = 'block';
+        }
+        function hideMessages() {
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'none';
+        }
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessages();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            try {
+                const response = await fetch('/login', { method: 'POST', body: formData });
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('role', data.role);
+                    window.location.href = '/dashboard';
+                } else {
+                    showError(data.detail || 'Неверное имя пользователя или пароль');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        });
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessages();
+            const consentPrivacy = document.getElementById('consentPrivacy').checked;
+            const consentTerms = document.getElementById('consentTerms').checked;
+            if (!consentPrivacy || !consentTerms) {
+                showError('Для регистрации необходимо принять Политику конфиденциальности и Пользовательское соглашение');
+                return;
+            }
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const passwordConfirm = document.getElementById('regPasswordConfirm').value;
+            if (password !== passwordConfirm) { showError('Пароли не совпадают'); return; }
+            if (username.length < 3) { showError('Логин должен содержать минимум 3 символа'); return; }
+            if (password.length < 6) { showError('Пароль должен содержать минимум 6 символов'); return; }
+            const btn = document.getElementById('registerBtn');
+            btn.disabled = true;
+            btn.textContent = 'Регистрация...';
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: username, password: password, password_confirm: passwordConfirm })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    showSuccess('Регистрация успешна! Переход в систему...');
+                    localStorage.setItem('token', data.access_token);
+                    localStorage.setItem('role', data.role);
+                    setTimeout(() => { window.location.href = '/dashboard'; }, 1000);
+                } else {
+                    showError(data.detail || 'Ошибка регистрации');
+                    btn.disabled = false;
+                    btn.textContent = 'Зарегистрироваться';
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+                btn.disabled = false;
+                btn.textContent = 'Зарегистрироваться';
+            }
+        });
+    </script>
+</body>
+</html>
